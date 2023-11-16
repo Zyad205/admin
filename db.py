@@ -2,24 +2,40 @@ import sqlite3 as sql
 
 # Makes the main connection
 con = sql.connect("main.db")
-print("hi")
 
-def check():
+def check() -> None:
     # Checks for tables
     cur = con.cursor()
+
     command = """CREATE TABLE IF NOT EXISTS customers (
-        name TEXT)"""
+        name TEXT PRIMARY KEY,
+        last_sub TEXT,
+        next_sub TEXT)"""
 
     cur.execute(command)
     cur.close()
+
     con.commit()
 
-def add(name):
+def add(name: str, last_sub: str, next_sub) -> None:
     cur = con.cursor()
-    command = """INSERT INTO customers(name) VALUES(?)"""
+    command = """INSERT INTO customers VALUES(?, ?, ?)"""
 
-    cur.execute(command, (name,))
+    cur.execute(command, (name, last_sub, next_sub))
+    cur.close()
 
     con.commit()
+
+def fetch(limit: int = 300) -> list[any]:
+    cur = con.cursor()
+    command = f"""SELECT * FROM customers LIMIT {limit}"""
+    cur.execute(command)
+    result = cur.fetchall()
+    cur.close()
+
+    return result
+
+
+
 
 
