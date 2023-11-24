@@ -17,7 +17,7 @@ def check() -> None:
 
     con.commit()
 
-def add(name: str, last_sub: str, next_sub) -> None:
+def add(name: str, last_sub: str, next_sub: str) -> None:
     cur = con.cursor()
     command = """INSERT INTO customers VALUES(?, ?, ?)"""
 
@@ -35,6 +35,18 @@ def fetch(limit: int = 300) -> list[any]:
 
     return result
 
+def alter(name: str, last_sub: str, next_sub:str) -> None:
+    cur = con.cursor()
+
+    command = f"""UPDATE customers
+                SET last_sub = ?,
+                    next_sub = ?
+                WHERE 
+                    name = ?"""
+    cur.execute(command, (last_sub, next_sub, name))
+
+    cur.close()
+    con.commit()
 
 
 
