@@ -159,23 +159,24 @@ class AddFrame(ctk.CTkFrame):
         self.day_var.set(str(next_date.day))
 
     def add(self):
+        """Adds the name to the db"""
         name = self.name_entry.get()
 
         if name != "":
-            name = name.strip()
-            print(name)
+            name = name.strip() # Strips tailing whitespaces
             year = self.year_var.get()
             month = self.month_var.get()
             day = self.day_var.get()
             try:
                 db.add(name, str(self.today), f"{year}-{month}-{day}")
+                # Adds the name to the treeview
                 self.add_to_treeview_func(name, str(self.today), f"{year}-{month}-{day}")
-            except IntegrityError:
+                
+            except IntegrityError: # If name is already in the db
                 showerror("Can't add", "Name is already registered")
 
 
 class RenewFrame(ctk.CTkFrame):
-
     
     def __init__(self, master, alter_treeview_func, *args, **kwargs):
         super().__init__(master=master, *args, **kwargs)
@@ -189,14 +190,13 @@ class RenewFrame(ctk.CTkFrame):
         self.name_label = ctk.CTkLabel(self, text="", font=MEDIUM_FONT)
 
         # Values for comboboxes
-        self.years = [str(year) for year in range(self.latest_sub.year, self.latest_sub.year + 10)]
         self.month = [str(month) for month in range(1, 13)]
         self.days = [str(day) for day in range(1, 32)]
 
         # Vars for the comboboxes
-        self.year_var = ctk.StringVar(value=str(self.latest_sub.year))
-        self.month_var = ctk.StringVar(value=str(self.latest_sub.month))
-        self.day_var = ctk.StringVar(value=str(self.latest_sub.day))
+        self.year_var = ctk.StringVar(value=str(1))
+        self.month_var = ctk.StringVar(value=str(1))
+        self.day_var = ctk.StringVar(value=str(1))
 
         # ----- #
         # Labels
@@ -205,14 +205,12 @@ class RenewFrame(ctk.CTkFrame):
         year_label = ctk.CTkLabel(self, text="Year:", font=SMALL_FONT)
         month_label = ctk.CTkLabel(self, text="Month:", font=SMALL_FONT)
         day_label = ctk.CTkLabel(self, text="Day:", font=SMALL_FONT)
-        date_label = ctk.CTkLabel(self, text=f"Date: {str(self.latest_sub)}", font=SMALL_FONT)
-
+        date_label = ctk.CTkLabel(self, text=f"Date: {str(date.today())}", font=SMALL_FONT)
         # ----- #
         # Comboboxes
 
         self.year_widget = ctk.CTkComboBox(
             self,
-            values=self.years,
             variable=self.year_var,
             command=self.change_days,
             state="readonly")
@@ -238,7 +236,7 @@ class RenewFrame(ctk.CTkFrame):
             text="Renew",
             fg_color=LIGHT_LIME,
             hover_color=HIGHLIGHTED_LIGHT_LIME,
-            command=self.add,
+            command=self.renew,
             text_color=GREY,
             corner_radius=5)
         
@@ -277,10 +275,13 @@ class RenewFrame(ctk.CTkFrame):
         days = self.days[0:get_max_day_for_month(year, month)]
 
         self.day_widget.configure(values=days)
+
+        # If the next month has lesser days set the day to the last day in the month
         if int(self.day_var.get()) > int(days[-1]):
             self.day_var.set(days[-1])
 
-    def increment_month(self):
+    def increment_month(self) -> None:
+        """Increase the value of the comboboxes to the next month"""
         if self.latest_sub.month == 12: # Jump to the next year
             next_date = self.latest_sub.replace(year=self.latest_sub.year + 1, month=1)
 
@@ -288,6 +289,7 @@ class RenewFrame(ctk.CTkFrame):
             month = self.latest_sub.month
             month += 1
             max_day = get_max_day_for_month(self.latest_sub.year, month)
+
             # If the next month has lesser days set the day to the last day in the month
             if self.latest_sub.day > max_day: 
                 next_date = date(self.latest_sub.year, month, max_day)
@@ -298,32 +300,51 @@ class RenewFrame(ctk.CTkFrame):
         self.month_var.set(str(next_date.month))
         self.day_var.set(str(next_date.day))
 
-    def get_name(self, name, latest_sub):
-        """Set name to the names"""
-        self.user_name = name
-
-        self.name_label.configure(text=f"Member: {name}")
-
+    def set_latest_sub(self, latest_sub: str) -> None:
+        # Creates a datetime object that gets converted to a date object
         self.latest_sub = datetime.strptime(latest_sub, '%Y-%m-%d')
 
         self.latest_sub = date(self.latest_sub.year, self.latest_sub.month, self.latest_sub.day)
 
+        # Values for the year combobox
+        self.years = [str(year) for year in range(self.latest_sub.year, self.latest_sub.year + 10)]
+
+        self.year_widget.configure(values=self.years)
+
+        # Vars for the comboboxes
+        self.year_var.set(str(self.latest_sub.year))
+        self.month_var.set(str(self.latest_sub.month))
+        self.day_var.set(str(self.latest_sub.day))
+
         self.increment_month()
 
-    def add(self):
 
+    def set_name(self, name: str) -> None:
+        """Set name to the names"""
+        self.user_name = name
+        self.name_label.configure(text=f"Member: {name}")
+
+    def renew(self) -> None:
+        """Changes the last sub and next sub data to the customer in the db"""
         year = self.year_var.get()
         month = self.month_var.get()
         day = self.day_var.get()
         today = str(date.today())
 
         try:
-            db.alter(self.user_name, today, f"{year}-{month}-{day}")
-        except IntegrityError:
+            db.alter(
+                name=self.user_name,
+                last_sub=today,
+                next_sub=f"{year}-{month}-{day}")
+            
+        except IntegrityError: # If couldn't find his name
             showerror("Can't alter", "Name is not found")
             return
 
-        
+        # Message to the user
         showinfo("Changed successfully", f"Member renewed successfully \nMEMBER: {self.user_name}")
+
+        # Change values at the treeview
         self.alter_treeview_func(self.user_name, today, f"{year}-{month}-{day}")
-        
+
+     

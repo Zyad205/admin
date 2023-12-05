@@ -9,7 +9,7 @@ from toplevel_frames import *
 class Main:
     def __init__(self, app: ctk.CTk):
 
-        # Top_levels
+        # Top_level
 
         self.top_level = CTopLevel(master=app)
         self.top_level.withdraw()
@@ -69,13 +69,11 @@ class Main:
             self.top_level.change_frame(self.renew_frame)
              
             next_sub = self.main_treeview.item(name)["values"][2] 
-            self.renew_frame.get_name(name, next_sub)
+            self.renew_frame.set_latest_sub(next_sub)
+            self.renew_frame.set_name(name)
 
         else:
             showerror(title="Invalid selection", message="Please select a member")
-
-
-
 
     def fetch(self):
         data = db.fetch()
