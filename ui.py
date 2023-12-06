@@ -39,15 +39,15 @@ class Main:
 
 
 
-        self.main_treeview.place(x=0, rely=0.02, relwidth=0.35, relheight=0.35)
-        self.main_treeview.y_scroll_bar.place(relx=0.35, rely=0.02, relheight=0.35, anchor="nw")
+        self.main_treeview.place(x=0, rely=0.02, relwidth=0.4, relheight=0.35)
+        self.main_treeview.y_scroll_bar.place(relx=0.4, rely=0.02, relheight=0.35, anchor="nw")
         self.add_btn.place(relx=0.01, rely=0.4, relwidth=0.07, relheight=0.05)
         self.renew_btn.place(relx=0.01, rely=0.5, relwidth=0.07, relheight=0.05)
 
     def create_main_treeview(self):
         self.main_treeview = CTreeview(self.app, "main", columns=("Name", "Latest subscription", "Next subscription"))
         self.main_treeview.create_style()
-        self.main_treeview.column_size((2, 2, 2), width= 35 * self.app.winfo_screenwidth() / 100)
+        self.main_treeview.column_size((2, 3, 3), width= 40 * self.app.winfo_screenwidth() / 100)
         self.main_treeview.create_scroll_bar(self.app)
 
         self.fetch()

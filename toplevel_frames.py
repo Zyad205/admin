@@ -4,30 +4,43 @@ from datetime import date, datetime
 import customtkinter as ctk
 from tkinter.messagebox import *
 from sqlite3 import IntegrityError
+from widgets import CTopLevel
 
 # ----- #
 # Functions
-def is_leap_year(year):
-    """Determine whether a year is a leap year."""
+def is_leap_year(year: int):
+    """Determine whether a year is a leap year
+    Parameters:
+    - Year (int): the year"""
+
     return year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
 
 def get_max_day_for_month(year: int, month: int) -> int:
-        """Get a the last day number in a month"""
+    """Get a the last day number for a given month
+    Parameters:
+    - Year (int): the year 
+    - Month (int): the month
+    """
         
-        if month == 2: # For Feb
-            max_day = 28  + int(is_leap_year(year))
-        elif month % 2: # Odd months 
-            max_day = 31
-        else:           # Even months
-            max_day = 30
+    if month == 2: # For Feb
+        max_day = 28  + int(is_leap_year(year))
+    elif month % 2: # Odd months 
+        max_day = 31
+    else:           # Even months
+        max_day = 30
 
-        return max_day
+    return max_day
 
 
 
 
 class AddFrame(ctk.CTkFrame):
-    def __init__(self, master, add_to_treeview_fun, *args, **kwargs):
+    def __init__(self, master: CTopLevel, add_to_treeview_fun: function, *args, **kwargs):
+        """The init func
+        Parameters:
+        - Master (CTopLevel): the master of this widget
+        - Add_to_treeview_func (function): a function to add the new customer to the main treeview"""
+
         super().__init__(master=master, *args, **kwargs)
 
         self.add_to_treeview_func = add_to_treeview_fun
@@ -125,7 +138,6 @@ class AddFrame(ctk.CTkFrame):
         # Change the value for the days combobox according to the month
         self.change_days("")
     
-
     def change_days(self, _) -> None:
         """Change the value for the days combobox according to the month"""
         
@@ -140,6 +152,8 @@ class AddFrame(ctk.CTkFrame):
             self.day_var.set(days[-1])
 
     def increment_month(self):
+        """Changes the value of the comboboxes to increment to the next month"""
+
         self.today = date.today() # Update the date
         if self.today.month == 12: # Jump to the next year
             next_date = self.today.replace(year=self.today.year + 1, month=1)
@@ -159,7 +173,8 @@ class AddFrame(ctk.CTkFrame):
         self.day_var.set(str(next_date.day))
 
     def add(self):
-        """Adds the name to the db"""
+        """Adds the customer to the db"""
+
         name = self.name_entry.get()
 
         if name != "":
@@ -178,7 +193,13 @@ class AddFrame(ctk.CTkFrame):
 
 class RenewFrame(ctk.CTkFrame):
     
-    def __init__(self, master, alter_treeview_func, *args, **kwargs):
+    def __init__(self, master: CTopLevel, alter_treeview_func: function, *args, **kwargs):
+        """ The init func
+        Parameters:
+        - Master (CTopLevel): the master of this widget
+        - Alter_treeview_func (function): a function called the change the customer information inside
+        - the main treeview when the customer renews
+        """
         super().__init__(master=master, *args, **kwargs)
 
         self.alter_treeview_func = alter_treeview_func
@@ -264,7 +285,6 @@ class RenewFrame(ctk.CTkFrame):
         # Change the value for the days combobox according to the month
         self.change_days("")
     
-
     def change_days(self, _) -> None:
         """Change the value for the days combobox according to the month"""
         
@@ -282,6 +302,7 @@ class RenewFrame(ctk.CTkFrame):
 
     def increment_month(self) -> None:
         """Increase the value of the comboboxes to the next month"""
+
         if self.latest_sub.month == 12: # Jump to the next year
             next_date = self.latest_sub.replace(year=self.latest_sub.year + 1, month=1)
 
@@ -301,6 +322,9 @@ class RenewFrame(ctk.CTkFrame):
         self.day_var.set(str(next_date.day))
 
     def set_latest_sub(self, latest_sub: str) -> None:
+        """Uses the last sub date to determine the next
+        Parameters: 
+        - Latest_sub (str): last sub date"""
         # Creates a datetime object that gets converted to a date object
         self.latest_sub = datetime.strptime(latest_sub, '%Y-%m-%d')
 
@@ -318,14 +342,17 @@ class RenewFrame(ctk.CTkFrame):
 
         self.increment_month()
 
-
     def set_name(self, name: str) -> None:
-        """Set name to the names"""
+        """Set name to the names
+        Parameters:
+        - Name (str): the name of the customer"""
+
         self.user_name = name
         self.name_label.configure(text=f"Member: {name}")
 
     def renew(self) -> None:
         """Changes the last sub and next sub data to the customer in the db"""
+
         year = self.year_var.get()
         month = self.month_var.get()
         day = self.day_var.get()
